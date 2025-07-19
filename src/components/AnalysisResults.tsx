@@ -70,61 +70,63 @@ const AnalysisResults = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 relative overflow-hidden particle-bg">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-400/15 via-purple-400/15 to-pink-400/15 rounded-full blur-3xl floating-element"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-indigo-400/15 via-purple-400/15 to-pink-400/15 rounded-full blur-3xl floating-element" style={{animationDelay: '2s'}}></div>
       </div>
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto space-y-6 relative z-10">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto space-y-8 relative z-10">
           {/* Header */}
-          <Card className="glass-card p-4 md:p-6 animate-fadeInUp hover-lift">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <Card className="glass-card p-6 md:p-8 animate-fadeInUp hover-lift">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
               <div className="flex-1">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
                   <Button
                     onClick={onReset}
                     variant="ghost"
-                    className="text-gray-600 hover:text-gray-800 p-2"
+                    className="text-gray-600 hover:text-gray-800 p-3 rounded-xl hover:bg-gray-100/80 transition-all duration-300"
                   >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="h-5 w-5 mr-2" />
                     Upload New Files
                   </Button>
                 </div>
                 
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Brain className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-xl md:text-2xl font-bold gradient-text">
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                      <Brain className="h-6 w-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black gradient-text tracking-tight">
                       {result.mainTopic || "TNPSC Study Analysis"}
                     </h2>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="badge-elegant badge-success">
+                  <div className="flex flex-wrap gap-3">
+                    <Badge className="badge-elegant badge-success px-4 py-2 text-sm font-bold">
                       Source Files: {selectedFiles.length}
                     </Badge>
-                    <Badge className="badge-elegant badge-success">
+                    <Badge className="badge-elegant badge-success px-4 py-2 text-sm font-bold">
                       Analysis Complete
                     </Badge>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Button
                     onClick={onGenerateQuestions}
                     disabled={isGeneratingQuestions}
-                    className="btn-primary flex-1"
+                    className="btn-primary flex-1 py-4 text-lg font-bold rounded-2xl"
                   >
                     {isGeneratingQuestions ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="spinner-modern mr-3"></div>
                         Generating Questions...
                       </>
                     ) : (
                       <>
-                        <Zap className="h-4 w-4 mr-2" />
+                        <Zap className="h-5 w-5 mr-3" />
                         Start Interactive Quiz
                       </>
                     )}
@@ -132,25 +134,25 @@ const AnalysisResults = ({
                   
                   <Button
                     onClick={handleDownloadAnalysis}
-                    className="btn-secondary"
+                    className="btn-secondary py-4 text-lg font-bold rounded-2xl"
                   >
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="h-5 w-5 mr-3" />
                     Download Analysis
                   </Button>
                 </div>
               </div>
 
               {selectedFiles.length > 0 && (
-                <div className="w-full sm:w-48 flex-shrink-0">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Source Files</div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                <div className="w-full sm:w-56 flex-shrink-0">
+                  <div className="text-base font-bold text-gray-700 mb-3">Source Files</div>
+                  <div className="space-y-2 max-h-36 overflow-y-auto">
                     {selectedFiles.slice(0, 3).map((file, index) => (
-                      <div key={index} className="text-xs text-gray-600 truncate">
+                      <div key={index} className="text-sm text-gray-600 truncate font-medium p-2 bg-gray-50/80 rounded-lg">
                         {file.name}
                       </div>
                     ))}
                     {selectedFiles.length > 3 && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-sm text-gray-500 font-medium">
                         +{selectedFiles.length - 3} more files
                       </div>
                     )}
@@ -162,18 +164,20 @@ const AnalysisResults = ({
 
           {/* Key Points */}
           {result.keyPoints && result.keyPoints.length > 0 && (
-            <Card className="glass-card p-4 md:p-6 animate-fadeInUp hover-lift" style={{animationDelay: '0.1s'}}>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-green-600" />
+            <Card className="glass-card p-6 md:p-8 animate-fadeInUp hover-lift" style={{animationDelay: '0.1s'}}>
+              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
                 <span className="gradient-text">Key Points</span>
               </h3>
-              <div className="grid gap-3 stagger-animation">
+              <div className="grid gap-4 stagger-animation">
                 {result.keyPoints.map((point, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover-lift">
-                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 shadow-md">
+                  <div key={index} className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-purple-50/80 rounded-2xl hover-lift backdrop-blur-sm border border-blue-100/50">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-elegant">
                       {index + 1}
                     </div>
-                    <p className="text-gray-700 leading-relaxed">{point}</p>
+                    <p className="text-gray-700 leading-relaxed font-medium text-base">{point}</p>
                   </div>
                 ))}
               </div>
@@ -182,17 +186,17 @@ const AnalysisResults = ({
 
           {/* Summary */}
           {result.summary && (
-            <Card className="glass-card p-4 md:p-6 animate-fadeInUp hover-lift" style={{animationDelay: '0.2s'}}>
-              <h3 className="text-lg font-semibold gradient-text mb-4">Summary</h3>
-              <p className="text-gray-700 leading-relaxed">{result.summary}</p>
+            <Card className="glass-card p-6 md:p-8 animate-fadeInUp hover-lift" style={{animationDelay: '0.2s'}}>
+              <h3 className="text-xl font-bold gradient-text mb-6 tracking-tight">Summary</h3>
+              <p className="text-gray-700 leading-relaxed text-base font-medium">{result.summary}</p>
             </Card>
           )}
 
           {/* TNPSC Relevance */}
           {result.tnpscRelevance && (
-            <Card className="glass-card p-4 md:p-6 bg-gradient-to-r from-purple-50 to-blue-50 animate-fadeInUp hover-lift" style={{animationDelay: '0.3s'}}>
-              <h3 className="text-lg font-semibold gradient-text mb-4">TNPSC Relevance</h3>
-              <p className="text-gray-700 leading-relaxed">{result.tnpscRelevance}</p>
+            <Card className="glass-card p-6 md:p-8 bg-gradient-to-r from-purple-50/80 via-blue-50/80 to-indigo-50/80 animate-fadeInUp hover-lift border border-purple-100/50" style={{animationDelay: '0.3s'}}>
+              <h3 className="text-xl font-bold gradient-text mb-6 tracking-tight">TNPSC Relevance</h3>
+              <p className="text-gray-700 leading-relaxed text-base font-medium">{result.tnpscRelevance}</p>
             </Card>
           )}
 
