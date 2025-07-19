@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import React from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/config/firebase";
 import NavigationHeader from "./components/NavigationHeader";
@@ -12,7 +12,7 @@ import StudyHistory from "./components/StudyHistory";
 import UserProfile from "./components/UserProfile";
 import ArivuChatbot from "./components/ArivuChatbot";
 import LandingPage from "./components/LandingPage";
-import { AppProvider } from "./contexts/AppContext";
+import { AppProvider, useAppContext } from "./contexts/AppContext";
 
 const queryClient = new QueryClient();
 
