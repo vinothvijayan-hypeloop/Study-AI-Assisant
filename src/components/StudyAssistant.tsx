@@ -64,31 +64,19 @@ const StudyAssistant = () => {
     setDifficulty,
     outputLanguage,
     setOutputLanguage,
+    pdfInfo,
+    setPdfInfo,
+    pdfFullText,
+    setPdfFullText,
+    comprehensiveResults,
+    setComprehensiveResults,
+    currentView,
+    setCurrentView,
     clearAppState
   } = useAppContext();
 
-  const [currentView, setCurrentView] = useState<"upload" | "analysis" | "questions" | "quiz" | "quick-analysis" | "pdf-page-select" | "comprehensive-pdf" | "pdf-navigator">("upload");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
-  const [pdfInfo, setPdfInfo] = useState<{file: File; totalPages: number} | null>(null);
-  const [pdfFullText, setPdfFullText] = useState<string>("");
-  const [comprehensiveResults, setComprehensiveResults] = useState<{
-    pageAnalyses: Array<{
-      pageNumber: number;
-      keyPoints: string[];
-      studyPoints: Array<{
-        title: string;
-        description: string;
-        importance: "high" | "medium" | "low";
-        tnpscRelevance: string;
-      }>;
-      summary: string;
-      tnpscRelevance: string;
-    }>;
-    overallSummary: string;
-    totalKeyPoints: string[];
-    tnpscCategories: string[];
-  } | null>(null);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;

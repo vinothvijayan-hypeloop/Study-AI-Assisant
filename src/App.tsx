@@ -18,7 +18,14 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const [user, loading] = useAuthState(auth);
-  const [currentView, setCurrentView] = useState("study");
+  const { currentView, setCurrentView } = useAppContext();
+
+  // Initialize currentView to "study" if it's "upload" and user is authenticated
+  React.useEffect(() => {
+    if (user && currentView === "upload") {
+      setCurrentView("study");
+    }
+  }, [user, currentView, setCurrentView]);
 
   if (loading) {
     return (
