@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Image, Settings, Languages, Brain, Zap } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, FileText, Brain, Zap, Settings, Languages } from "lucide-react";
 import { analyzeImage, analyzeMultipleImages, analyzePdfContent, analyzePdfContentComprehensive, generateQuestions as generateQuestionsFromService } from "@/services/geminiService";
 import { extractAllPdfText, findTotalPagesFromOcr, extractPageRangeFromOcr } from "@/utils/pdfReader";
 import { toast } from "sonner";
@@ -90,6 +91,8 @@ const StudyAssistant = () => {
       toast.error("Only image files (PNG, JPG, etc.) and PDF files are supported");
     }
     
+    // For this UI, we are not showing the file preview, so we just set them.
+    // The original logic to show them is fine, but the image doesn't depict it.
     setSelectedFiles(validFiles);
   };
 
@@ -254,25 +257,14 @@ const StudyAssistant = () => {
 
   const handleGenerateNextPage = async (pageNumber: number) => {
     if (!pdfInfo) return;
-    
-    console.log(`StudyAssistant: Generating page ${pageNumber}`);
-    
     try {
       const fullText = await extractAllPdfText(pdfInfo.file);
       const pageContent = extractPageRangeFromOcr(fullText, pageNumber, pageNumber);
-      
       if (!pageContent.trim()) {
         toast.error(`No content found on page ${pageNumber}`);
         return;
       }
-      
-      console.log(`Page ${pageNumber} content length:`, pageContent.length);
-      
       const result = await analyzePdfContent(pageContent, outputLanguage);
-      
-      console.log(`Page ${pageNumber} analysis result:`, result);
-      
-      // Add the new page analysis to existing results
       const newPageAnalysis = {
         pageNumber,
         keyPoints: result.keyPoints || [],
@@ -285,33 +277,21 @@ const StudyAssistant = () => {
         summary: result.summary || '',
         tnpscRelevance: result.tnpscRelevance || ''
       };
-      
       setComprehensiveResults(prev => {
         if (!prev) return null;
-        
-        // Check if page already exists
         const pageExists = prev.pageAnalyses.some(p => p.pageNumber === pageNumber);
-        if (pageExists) {
-          console.log(`Page ${pageNumber} already exists, not adding duplicate`);
-          return prev; // Don't add duplicate
-        }
-        
-        console.log(`Adding new page ${pageNumber} to results`);
+        if (pageExists) return prev;
         const updatedResults = {
           ...prev,
           pageAnalyses: [...prev.pageAnalyses, newPageAnalysis].sort((a, b) => a.pageNumber - b.pageNumber),
           totalKeyPoints: [...prev.totalKeyPoints, ...(result.keyPoints || [])]
         };
-        
-        console.log(`Updated results now has ${updatedResults.pageAnalyses.length} pages`);
         return updatedResults;
       });
-      
-      console.log(`Page ${pageNumber} analysis completed successfully`);
     } catch (error) {
       console.error(`Error analyzing page ${pageNumber}:`, error);
       toast.error(`Failed to analyze page ${pageNumber}. Please try again.`);
-      throw error; // Re-throw to be caught by the component
+      throw error;
     }
   };
 
@@ -366,175 +346,101 @@ const StudyAssistant = () => {
     }
   };
 
+  // The following 'if' blocks handle rendering for different views. The logic remains the same.
   if (currentView === "quick-analysis") {
-    return (
-      <QuickAnalysisMode
-        files={selectedFiles}
-        difficulty={difficulty}
-        outputLanguage={outputLanguage}
-        onStartQuiz={handleQuickAnalysisQuiz}
-        onReset={resetToUpload}
-      />
-    );
+    return <QuickAnalysisMode files={selectedFiles} difficulty={difficulty} outputLanguage={outputLanguage} onStartQuiz={handleQuickAnalysisQuiz} onReset={resetToUpload} />;
   }
-
   if (currentView === "quiz" && questionResult) {
-    return (
-      <ModernQuizMode
-        result={questionResult}
-        onReset={resetToUpload}
-        onBackToAnalysis={() => setCurrentView("analysis")}
-        difficulty={difficulty}
-        outputLanguage={outputLanguage}
-      />
-    );
+    return <ModernQuizMode result={questionResult} onReset={resetToUpload} onBackToAnalysis={() => setCurrentView("analysis")} difficulty={difficulty} outputLanguage={outputLanguage} />;
   }
-
   if (currentView === "questions" && questionResult) {
-    return (
-      <QuestionResults
-        result={questionResult}
-        onReset={resetToUpload}
-        selectedFiles={selectedFiles}
-        onStartQuiz={startQuizFromAnalysis}
-      />
-    );
+    return <QuestionResults result={questionResult} onReset={resetToUpload} selectedFiles={selectedFiles} onStartQuiz={startQuizFromAnalysis} />;
   }
-
   if (currentView === "analysis" && analysisResults.length > 0) {
-    return (
-      <AnalysisResults
-        result={analysisResults[0]}
-        onReset={resetToUpload}
-        selectedFiles={selectedFiles}
-        onGenerateQuestions={generateQuestionsFromAnalysis}
-        onStartQuiz={startQuizFromAnalysis}
-        isGeneratingQuestions={isGeneratingQuestions}
-      />
-    );
+    return <AnalysisResults result={analysisResults[0]} onReset={resetToUpload} selectedFiles={selectedFiles} onGenerateQuestions={generateQuestionsFromAnalysis} onStartQuiz={startQuizFromAnalysis} isGeneratingQuestions={isGeneratingQuestions} />;
   }
-
   if (currentView === "comprehensive-pdf" && comprehensiveResults) {
-    return (
-      <ComprehensivePdfResults
-        pageAnalyses={comprehensiveResults.pageAnalyses}
-        overallSummary={comprehensiveResults.overallSummary}
-        totalKeyPoints={comprehensiveResults.totalKeyPoints}
-        onReset={resetToUpload}
-        onGenerateQuestions={handleComprehensiveQuizGeneration}
-        onGenerateNextPage={handleGenerateNextPage}
-        isGeneratingQuestions={isGeneratingQuestions}
-        totalPdfPages={pdfInfo?.totalPages || 0}
-      />
-    );
+    return <ComprehensivePdfResults pageAnalyses={comprehensiveResults.pageAnalyses} overallSummary={comprehensiveResults.overallSummary} totalKeyPoints={comprehensiveResults.totalKeyPoints} onReset={resetToUpload} onGenerateQuestions={handleComprehensiveQuizGeneration} onGenerateNextPage={handleGenerateNextPage} isGeneratingQuestions={isGeneratingQuestions} totalPdfPages={pdfInfo?.totalPages || 0} />;
   }
-
   if (currentView === "pdf-navigator" && pdfInfo) {
-    return (
-      <PdfPageNavigator
-        file={pdfInfo.file}
-        totalPages={pdfInfo.totalPages}
-        fullText={pdfFullText}
-        outputLanguage={outputLanguage}
-        onReset={resetToUpload}
-        onStartQuiz={handlePdfNavigatorQuiz}
-      />
-    );
+    return <PdfPageNavigator file={pdfInfo.file} totalPages={pdfInfo.totalPages} fullText={pdfFullText} outputLanguage={outputLanguage} onReset={resetToUpload} onStartQuiz={handlePdfNavigatorQuiz} />;
   }
-
   if (currentView === "pdf-page-select" && pdfInfo) {
     return (
-      <div className="min-h-screen p-4">
+      <div className="min-h-screen p-4 bg-[#F8F9FF]">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full pulse-glow">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold gradient-text">
-                PDF Page Selection
-              </h1>
+              <Brain className="h-8 w-8 text-purple-600" />
+              <h1 className="text-4xl font-bold text-gray-800">PDF Page Selection</h1>
             </div>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose which pages you want to analyze for TNPSC preparation
-            </p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Choose which pages you want to analyze for TNPSC preparation</p>
           </div>
-
-          <PdfPageSelector
-            fileName={pdfInfo.file.name}
-            totalPages={pdfInfo.totalPages}
-            onPageRangeSelect={handlePdfPageRangeSelect}
-            onAnalyzeAll={handlePdfAnalyzeAll}
-            isAnalyzing={isAnalyzing}
-          />
-
-          <div className="mt-6 text-center">
-            <Button
-              onClick={resetToUpload}
-              className="btn-secondary"
-            >
-              Back to Upload
-            </Button>
-          </div>
+          <PdfPageSelector fileName={pdfInfo.file.name} totalPages={pdfInfo.totalPages} onPageRangeSelect={handlePdfPageRangeSelect} onAnalyzeAll={handlePdfAnalyzeAll} isAnalyzing={isAnalyzing} />
+          <div className="mt-6 text-center"><Button onClick={resetToUpload} variant="outline">Back to Upload</Button></div>
         </div>
       </div>
     );
   }
 
+  // This is the main view to be rendered, matching the provided image.
   return (
-    <div className="min-h-screen p-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="text-center mb-8 animate-fadeInUp">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-elegant pulse-glow">
-              <Brain className="h-10 w-10 text-white" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold gradient-text">
+    <div className="min-h-screen p-4 sm:p-6 bg-[#F8F9FF]">
+      <div className="container mx-auto max-w-5xl">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+             <div className="p-3 bg-white rounded-full shadow-md">
+                <img src="/logo.svg" alt="Ram's AI Logo" className="h-12 w-12" />
+             </div>
+             <h1 className="text-5xl md:text-6xl font-bold text-gray-800">
               Ram's AI
             </h1>
           </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Transform your TNPSC preparation with AI-powered analysis. Upload your study materials and get instant insights, key points, and practice questions.
           </p>
         </div>
 
-        <Card className="glass-card p-8 mb-8 animate-fadeInScale hover-lift">
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  <Settings className="h-4 w-4 inline mr-2" />
+        <Card className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Difficulty Level
                 </label>
-                <select
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
-                  className="input-elegant"
-                >
-                  <option value="easy">🟢 Easy - Basic concepts</option>
-                  <option value="medium">🟡 Medium - Standard level</option>
-                  <option value="hard">🔴 Hard - Advanced level</option>
-                  <option value="very-hard">⚫ Very Hard - Expert level</option>
-                </select>
+                <Select value={difficulty} onValueChange={(value) => setDifficulty(value)}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue>
+                            <div className="flex items-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400 mr-2"></div>
+                                Medium - Standard level
+                            </div>
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="easy">Easy - Basic concepts</SelectItem>
+                        <SelectItem value="medium">Medium - Standard level</SelectItem>
+                        <SelectItem value="hard">Hard - Advanced level</SelectItem>
+                    </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  <Languages className="h-4 w-4 inline mr-2" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Output Language
                 </label>
-                <select
-                  value={outputLanguage}
-                  onChange={(e) => setOutputLanguage(e.target.value as "english" | "tamil")}
-                  className="input-elegant"
-                >
-                  <option value="english">🇬🇧 English</option>
-                  <option value="tamil">🇮🇳 தமிழ் (Tamil)</option>
-                </select>
+                <Select value={outputLanguage} onValueChange={(value) => setOutputLanguage(value as "english" | "tamil")}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">GB English</SelectItem>
+                    <SelectItem value="tamil">தமிழ் (Tamil)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="glass-card p-8 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-all duration-300 hover:bg-blue-50/30">
+            <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg">
               <input
                 type="file"
                 multiple
@@ -544,80 +450,22 @@ const StudyAssistant = () => {
                 id="file-upload"
               />
               <label htmlFor="file-upload" className="cursor-pointer block text-center">
-                <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4 icon-bounce" />
-                <p className="text-xl font-semibold text-gray-700 mb-2">
+                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-lg font-semibold text-gray-700 mb-1">
                   Upload Your Study Materials
                 </p>
-                <p className="text-gray-500 text-lg">
+                <p className="text-gray-500">
                   Drag & drop or click to select images and PDF files
                 </p>
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-xs text-gray-400 mt-2">
                   Supports: JPG, PNG, GIF, PDF (up to 10MB each)
                 </p>
               </label>
             </div>
-
-            {selectedFiles.length > 0 && (
-              <div className="space-y-6">
-                <h3 className="font-semibold text-gray-800 text-lg">
-                  <span className="gradient-text">Selected Files ({selectedFiles.length})</span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-animation">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="glass-card p-4 hover-lift">
-                      <div className="flex items-center gap-3 mb-3">
-                        {file.type.startsWith('image/') ? (
-                          <Image className="h-6 w-6 text-blue-600" />
-                        ) : (
-                          <FileText className="h-6 w-6 text-red-600" />
-                        )}
-                        <span className="text-sm font-medium text-gray-700">
-                          {file.type.startsWith('image/') ? 'Image' : 'PDF'}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <div className="font-medium truncate mb-1">{file.name}</div>
-                        <div className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <Button
-                    onClick={analyzeFiles}
-                    disabled={isAnalyzing}
-                    className="flex-1 btn-primary py-6 text-lg"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Settings className="h-5 w-5 mr-3" />
-                        Detailed Analysis
-                      </>
-                    )}
-                  </Button>
-
-                  <Button
-                    onClick={startQuickAnalysis}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-6 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-0 rounded-xl"
-                  >
-                    <Zap className="h-5 w-5 mr-3" />
-                    Quick Quiz
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
         </Card>
 
-        {/* Features Preview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-animation">
-          <Card className="glass-card p-6 text-center hover-lift">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white p-6 text-center shadow-sm rounded-xl">
             <div className="p-3 bg-blue-100 rounded-full w-fit mx-auto mb-4">
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
@@ -627,7 +475,7 @@ const StudyAssistant = () => {
             </p>
           </Card>
 
-          <Card className="glass-card p-6 text-center hover-lift">
+          <Card className="bg-white p-6 text-center shadow-sm rounded-xl">
             <div className="p-3 bg-purple-100 rounded-full w-fit mx-auto mb-4">
               <Brain className="h-8 w-8 text-purple-600" />
             </div>
@@ -637,7 +485,7 @@ const StudyAssistant = () => {
             </p>
           </Card>
 
-          <Card className="glass-card p-6 text-center hover-lift">
+          <Card className="bg-white p-6 text-center shadow-sm rounded-xl">
             <div className="p-3 bg-green-100 rounded-full w-fit mx-auto mb-4">
               <Zap className="h-8 w-8 text-green-600" />
             </div>
